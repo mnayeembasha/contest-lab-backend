@@ -13,7 +13,7 @@ const questions: Record<string, Question> = {
     description: "Write a program to return the nth row of Pascal’s Triangle.",
     testCases: [
       { input: "0", expected: "[1]" },
-      // { input: "1", expected: "[1,1]" },
+      { input: "1", expected: "[1,1]" },
       { input: "2", expected: "[1,2,1]" },
       { input: "5", expected: "[1,5,10,10,5,1]" },
     ],
@@ -45,9 +45,9 @@ export const runCode = async (req: Request, res: Response): Promise<Response> =>
 
   // console.log(code, language, versionIndex, questionId);
 
-  if (!code || !language || !versionIndex || !questionId) {
-    return res.status(400).json({ error: "Missing required fields." });
-  }
+  // if (!code || !language || !versionIndex || !questionId) {
+  //   return res.status(400).json({ error: "Missing required fields." });
+  // }
 
   const question: Question | undefined = questions[questionId];
   if (!question) {
