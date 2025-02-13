@@ -28,7 +28,7 @@ export const addQuestion = (title: string,description: string,testCases: TestCas
 // Controller to get a specific question
 export const getspecificquestion =async (req: Request, res: Response) => {
   const { id } = req.params;
-  console.log(id);
+
   // const question = questions[id];
 
   // if (!question) {
@@ -37,7 +37,7 @@ export const getspecificquestion =async (req: Request, res: Response) => {
 
   // return res.status(200).json({ question });
   try {
-    const question = await questionModel.findById(id);
+    const question = await questionModel.findOne({slug:id});
     if (!question) {
         return res.status(404).json({ error: "Question not found" });
     }
