@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { Question, TestCase } from "../types";
+import { Question as questionModel } from "../models/questionModel";
 
 // In-memory storage for questions
 const questions: Record<string, Question> = {
@@ -25,23 +26,39 @@ export const addQuestion = (title: string,description: string,testCases: TestCas
 };
 
 // Controller to get a specific question
-export const getspecificquestion = (req: Request, res: Response): Response => {
+export const getspecificquestion =async (req: Request, res: Response) => {
   const { id } = req.params;
-  const question = questions[id];
+  console.log(id);
+  // const question = questions[id];
 
-  if (!question) {
-    return res.status(404).json({ error: "Question not found" });
+  // if (!question) {
+  //   return res.status(404).json({ error: "Question not found" });
+  // }
+
+  // return res.status(200).json({ question });
+  try {
+    const question = await questionModel.findById(id);
+    if (!question) {
+        return res.status(404).json({ error: "Question not found" });
+    }
+    res.status(200).json(question);
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error", error });
   }
-
-  return res.status(200).json({ question });
 };
 
 // Controller to fetch all questions
-export const question = (req: Request, res: Response): Response => {
-  const questionList = Object.keys(questions).map((id) => ({
-    id,
-    title: questions[id].title,
-    description: questions[id].description,
-  }));
-  return res.status(200).json({ questions: questionList });
+export const question = async (req: Request, res: Response) => {
+  // const questionList = Object.keys(questions).map((id) => ({
+  //   id,
+  //   title: questions[id].title,
+  //   description: questions[id].description,
+  // }));
+  // return res.status(200).json({ questions: questionList });
+  try {
+    const questions = await questionModel.find();
+    res.status(200).json(questions);
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error", error });
+  }
 };
