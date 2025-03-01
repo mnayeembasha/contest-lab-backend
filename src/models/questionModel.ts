@@ -11,6 +11,7 @@ export interface TestCase {
   id?: number;
   input: string;
   expected: string;
+  description?:string;
 }
 
 export interface IQuestion extends Document {
@@ -44,6 +45,7 @@ const TestCaseSchema = new Schema<TestCase>({
   id: { type: Number, default: 1 },
   input: { type: String, required: true },
   expected: { type: String, required: true },
+  description: { type: String },
 });
 
 const questionSchema = new Schema<IQuestion>(

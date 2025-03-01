@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 interface TestCase {
   input: string;
   expected: string | null;
+  description?:string
 }
 
 interface Question {

@@ -3,6 +3,7 @@ import axios from "axios";
 import fs from "fs";
 import { Question } from "../types";
 import { JDOODLE_CLIENT_ID, JDOODLE_CLIENT_SECRET } from "../config";
+import { Question as QuestionModel } from "../models/questionModel";
 
 const JDOODLE_URL = "https://api.jdoodle.com/v1/execute";
 
@@ -10,7 +11,7 @@ const JDOODLE_URL = "https://api.jdoodle.com/v1/execute";
 const questions: Record<string, Question> = {
   "2c5ee640-c477-4a3e-98c9-5fcaee6aaa43": {
     title: "Pascal's Triangle",
-    description: "Write a program to return the nth row of Pascal’s Triangle.",
+    description: "Write a program to return the nth row of Pascal's Triangle.",
     testCases: [
       { input: "0", expected: "[1]" },
       // { input: "1", expected: "[1,1]" },
@@ -41,15 +42,40 @@ interface JdoodleResponse {
 
 // Run submitted code
 export const runCode = async (req: Request, res: Response): Promise<Response> => {
-  const { code, language, versionIndex, questionId } = req.body;
+  const { code,language, slug } = req.body;
 
-  // console.log(code, language, versionIndex, questionId);
+  const suppLangAndVIndex = {
+    "java":{
+      languageCode:"java",
+      versionIndex:5
+    },
+    "c":{
+      languageCode:"c",
+      versionIndex:6
+    },
+    "c++":{
+      languageCode:"cpp",
+      versionIndex:6
+    },
+    "python":{
+      languageCode:"python3",
+      versionIndex:5
+    },
+    "javascript":{
+      languageCode:"nodejs",
+      versionIndex:6
+    },
+  }
 
-  if (!code || !language || !versionIndex || !questionId) {
+  const versionIndex = suppLangAndVIndex[language].versionIndex;
+  const languageCode =suppLangAndVIndex[language].languageCode;
+
+  if (!code || !language || !versionIndex || !slug) {
     return res.status(400).json({ error: "Missing required fields." });
   }
 
-  const question: Question | undefined = questions[questionId];
+  // const question: Question | undefined = questions[questionId];
+  const question = await QuestionModel.findOne({slug});
   if (!question) {
     return res.status(404).json({ error: "Question not found." });
   }
@@ -59,21 +85,29 @@ export const runCode = async (req: Request, res: Response): Promise<Response> =>
   const expectedFilePath = "expected_output.txt";
 
   // Prepare input and expected output files
-  const inputsArray = question.testCases.map((tc) => tc.input);
-  const expectedOutputsArray = question.testCases.map((tc) => tc.expected || "null");
+  const inputsArray = question.testCases.map((tc) => tc.input.trim());
+  const expectedOutputsArray = question.testCases.map((tc) => tc.expected.trim() || "null");
 
   fs.writeFileSync(inputFilePath, inputsArray.join("\n"), "utf8");
   fs.writeFileSync(expectedFilePath, expectedOutputsArray.join("\n"), "utf8");
 
   try {
     // Call JDOODLE API
+
+    console.log("request=",{
+      clientId: JDOODLE_CLIENT_ID,
+      clientSecret: JDOODLE_CLIENT_SECRET,
+      script: code,
+      stdin: inputsArray.join("\n"),
+      language:languageCode,
+      versionIndex,
+    })
     const response = await axios.post<JdoodleResponse>(JDOODLE_URL, {
       clientId: JDOODLE_CLIENT_ID,
       clientSecret: JDOODLE_CLIENT_SECRET,
       script: code,
-      // stdin: inputsArray.join("\n"),
-      stdin: "2",
-      language,
+      stdin: inputsArray.join("\n"),
+      language:languageCode,
       versionIndex,
     });
 

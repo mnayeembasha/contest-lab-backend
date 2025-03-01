@@ -9,6 +9,6 @@ var {submitContest} = require('../controller/submitContest');
 router.post('/create',isAuthenticated, createContest);
 router.post('/join', joinContest);
 router.post('/stop', stopContest);
-router.post('/submit', submitContest);
+router.post('/contest/submit', submitContest);
 
 export default router;

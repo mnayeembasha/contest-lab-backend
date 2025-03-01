@@ -3,8 +3,8 @@ const { Schema } = mongoose;
 
 const contestSchema = new Schema({
   title: String,
-  startTime: Date,
-  duration: Number,
+  startTime: {type:Date,required:true},
+  duration: {type:Number,required:true},
   questions: [{
     type: Schema.Types.ObjectId,
     ref: 'Question'

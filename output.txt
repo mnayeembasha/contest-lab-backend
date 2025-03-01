@@ -1,2 +1,103 @@
 [1, 2, 1]
 [1, 2, 1]
+[0, 1]
+
+[0, 1]
+
+[0, 1]
+
+[]
+[0, 1]
+
+[0, 1]
+[1, 2]
+[0, 2]
+[]
+[]
+[0, 1]
+[1, 2]
+[0, 2]
+[0, 1]
+[1, 2]
+[0, 2]
+TwoSum.java:8: error: cannot find symbol
+[0, 1]
+[1, 2]
+[0, 2]
+[0, 1]
+[1, 2]
+[0, 2]
+Traceback (most recent call last):
+Traceback (most recent call last):
+[0, 1]
+[0, 2]
+[0, 1]
+[1, 2]
+[0, 2]
+Command terminated by signal 11
+Command terminated by signal 11
+Command terminated by signal 11
+Command terminated by signal 11
+Command terminated by signal 11
+Command terminated by signal 11
+Command terminated by signal 11
+[]
+[0, 1]
+[1, 2]
+[0, 2]
+[]
+[0, 1]
+[1, 2]
+[0, 2]
+[0, 1]
+[1, 2]
+[0, 2]
+[]
+[0, 1]
+[1, 2]
+[0, 2]
+0
+[]
+[0, 1]
+[1, 2]
+[0, 2]
+[]
+[0, 1]
+[1, 2]
+[0, 2]
+[]
+hello
+[0, 1]
+[1, 2]
+[0, 2]
+[]
+[]
+[]
+[0, 1]
+[1, 2]
+[0, 2]
+hello
+[0,1]
+[1,2]
+[0,2]
+[]
+max_subarray
+File "/home/jdoodle.py", line 3
+true
+true
+false
+[]
+[]
+[]
+[]
+[]
+[]
+[]
+[]
+[]
+hello
+true
+true
+false
+false
+[]
