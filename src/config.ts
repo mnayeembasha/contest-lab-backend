@@ -9,3 +9,4 @@ export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 export const JDOODLE_CLIENT_ID = process.env.JDOODLE_CLIENT_ID;
 export const JDOODLE_CLIENT_SECRET = process.env.JDOODLE_CLIENT_SECRET;
 export const SESSION_SECRET = process.env.SESSION_SECRET;
+export const FRONTEND_URL='http://localhost:3001'

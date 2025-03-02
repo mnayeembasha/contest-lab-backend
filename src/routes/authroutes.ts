@@ -3,6 +3,7 @@ import passport from "passport";
 import { isAuthenticated } from "../middleware/authMiddleware";
 import { User } from "../models/userModel";
 import dotenv from "dotenv";
+import { FRONTEND_URL } from "../config";
 dotenv.config();
 
 
@@ -19,14 +20,14 @@ authRouter.get(
   "/google/callback",
   passport.authenticate("google", {
     failureRedirect: "/auth/failure",
-    successRedirect: "http://localhost:3001/profile", // Redirect to frontend
+    successRedirect: `${FRONTEND_URL}/profile`, // Redirect to frontend
   })
 );
 
 authRouter.get("/failure", (req, res) => {
   res.status(401).json({ message: "OAuth Login Failed" });
   res.redirect(
-    "http://localhost:3001/login?errorMessage=OAuth%20Login%20Failed"
+    `${FRONTEND_URL}/login?errorMessage=OAuth%20Login%20Failed`
   );
 });
 
