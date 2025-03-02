@@ -19,7 +19,7 @@ interface Answers {
 
 exports.submitContest = async (req: Request, res: Response) => {
   try {
-    const { userId, contestId, answers } = req.body;
+    const { userId, contestId, answers,timeTaken } = req.body;
 
     if (!userId || !contestId || !answers) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -35,9 +35,9 @@ exports.submitContest = async (req: Request, res: Response) => {
     // Check if contest time has ended
     const currentTime = new Date();
     const contestEndTime = new Date(contest.startTime.getTime() + contest.duration * 60000); // duration in minutes
-    if (currentTime > contestEndTime) {
-      return res.status(403).json({ error: "Contest has already ended" });
-    }
+    // if (currentTime > contestEndTime) {
+    //   return res.status(403).json({ error: "Contest has already ended" });
+    // }
 
     const typedAnswers: Answers = answers as Answers;
 
@@ -55,7 +55,7 @@ exports.submitContest = async (req: Request, res: Response) => {
           code,
           submissionTime: new Date(),
           isSubmitted: true,
-          timeTaken: 0, // Default for now, modify if needed
+          timeTaken: timeTaken, // Default for now, modify if needed
         }));
       })
     );

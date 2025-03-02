@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
+    "build":"npm install && tsc -b",
+    "start": "node ./dist/app.js",
     "dev": "tsc -b && node ./dist/app.js"
   },
   "dependencies": {
