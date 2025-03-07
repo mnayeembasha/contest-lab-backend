@@ -55,7 +55,6 @@ exports.submitContest = async (req: Request, res: Response) => {
           code,
           submissionTime: new Date(),
           isSubmitted: true,
-          timeTaken: timeTaken, // Default for now, modify if needed
         }));
       })
     );
@@ -73,6 +72,7 @@ exports.submitContest = async (req: Request, res: Response) => {
         contestId,
         submissions: flattenedSubmissions,
         isCompleted: true,
+        timeTaken: timeTaken,
       });
     }
 

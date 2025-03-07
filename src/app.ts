@@ -28,35 +28,36 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 // Allowed origins
-const allowedOrigins = [
-  "https://contest-lab.vercel.app",
-  "http://localhost:3001" 
-];
+// const allowedOrigins = [
+//   // "https://contest-lab.vercel.app",
+//   "http://localhost:3001"
+// ];
 
-// CORS Middleware
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true
-}));
+// // CORS Middleware
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   credentials: true
+// }));
 
 // Additional headers in case CORS still causes issues
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://contest-lab.vercel.app");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.header("Access-Control-Allow-Credentials", "true");
+// app.use((req, res, next) => {
+  //   res.header("Access-Control-Allow-Origin", "https://contest-lab.vercel.app");
+  //   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+//   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//   res.header("Access-Control-Allow-Credentials", "true");
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
+//   if (req.method === "OPTIONS") {
+  //     return res.sendStatus(200);
+  //   }
+  //   next();
+  // });
+app.use(cors({origin:'http://localhost:3001',credentials:true}));
 app.use(cookieParser());
 
 app.use(
