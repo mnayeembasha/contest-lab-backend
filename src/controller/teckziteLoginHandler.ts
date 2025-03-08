@@ -2,6 +2,8 @@ import { JWT_SECRET, TECKZITE_USER_PASSWORD } from "../config";
 import jwt from "jsonwebtoken";
 import { teckziteUserModel } from "../models/teckziteUserModel";
 import { Request,Response } from "express";
+import dotenv from "dotenv";
+dotenv.config();
 
 export interface TeckziteUserDocument extends Document {
   teckziteId: string;
