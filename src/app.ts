@@ -21,8 +21,8 @@ dotenv.config();
 const app: express.Application = express();
 
 // View engine setup
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "jade");
+// app.set("views", path.join(__dirname, "views"));
+// app.set("view engine", "jade");
 
 app.use((req, res, next) => {
   const allowedOrigins = ["http://localhost:3001", "https://contest-lab.vercel.app"];
@@ -80,10 +80,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // Error handler
-app.use((err: HttpError, req: Request, res: Response) => {
+app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
   res.status(err.status || 500).json({
     message: err.message || "Internal Server Error",
-    error: process.env.NODE_ENV === "development" ? err : {},
+    error: process.env.NODE_ENV === "development" ? err : {}, // Hide errors in production
   });
 });
 
