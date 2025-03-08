@@ -14,6 +14,7 @@ import passport from "passport";
 import session from "express-session";
 import "./passport-auth/passport";
 import dotenv from "dotenv";
+import teckziteRouter from "./routes/teckziteRoutes";
 dotenv.config();
 
 // Initialize Express App
@@ -27,37 +28,35 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
-// Allowed origins
-// const allowedOrigins = [
-//   // "https://contest-lab.vercel.app",
-//   "http://localhost:3001"
-// ];
+app.use(
+  cors({
+    origin: ["http://localhost:3001", "https://contest-lab.vercel.app"], // Allowed origins
+    credentials: true, // Allow cookies/session to be sent
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allowed methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
+  })
+);
 
-// // CORS Middleware
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("Not allowed by CORS"));
-//     }
-//   },
-//   credentials: true
-// }));
+// Handle preflight requests manually (optional but recommended)
+app.use((req, res, next) => {
+  const allowedOrigins = ["http://localhost:3001", "https://contest-lab.vercel.app"];
+  const origin = req.headers.origin;
 
-// Additional headers in case CORS still causes issues
-// app.use((req, res, next) => {
-  //   res.header("Access-Control-Allow-Origin", "https://contest-lab.vercel.app");
-  //   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-//   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-//   res.header("Access-Control-Allow-Credentials", "true");
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
 
-//   if (req.method === "OPTIONS") {
-  //     return res.sendStatus(200);
-  //   }
-  //   next();
-  // });
-app.use(cors({origin:'http://localhost:3001',credentials:true}));
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
+
+// app.use(cors({origin:'http://localhost:3001',credentials:true}));
 app.use(cookieParser());
 
 app.use(
@@ -81,6 +80,7 @@ app.use("/api", questionsRouter);
 app.use("/api", contestRouter);
 app.use("/", indexRouter);
 app.use("/auth", authRouter);
+app.use("/teckzite", teckziteRouter);
 
 // Catch 404 and forward to error handler
 app.use((req: Request, res: Response, next: NextFunction) => {

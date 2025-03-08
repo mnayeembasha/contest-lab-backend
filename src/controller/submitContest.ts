@@ -19,9 +19,9 @@ interface Answers {
 
 exports.submitContest = async (req: Request, res: Response) => {
   try {
-    const { userId, contestId, answers,timeTaken } = req.body;
+    const { userId:teckziteId, contestId, answers,timeTaken } = req.body;
 
-    if (!userId || !contestId || !answers) {
+    if (!teckziteId || !contestId || !answers) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -61,14 +61,14 @@ exports.submitContest = async (req: Request, res: Response) => {
     const flattenedSubmissions = submissions.flat();
 
     // Check if user already has a submission for this contest
-    let userContest = await UserContest.findOne({ userId, contestId });
+    let userContest = await UserContest.findOne({ teckziteId,contestId });
     if (userContest) {
       res.status(401).json({"message":"user already submitted the contest"});
       return;
     } else {
       // Create new record
       userContest = new UserContest({
-        userId,
+        teckziteId,
         contestId,
         submissions: flattenedSubmissions,
         isCompleted: true,

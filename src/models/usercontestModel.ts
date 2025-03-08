@@ -120,10 +120,10 @@ const { Schema } = mongoose;
 
 
 const userContestSchema = new Schema({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
+  teckziteId: {
+    type: String,
     required: true,
+    unique:true,
   },
   contestId: {
     type: Schema.Types.ObjectId,
