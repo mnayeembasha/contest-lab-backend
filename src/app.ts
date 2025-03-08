@@ -20,6 +20,10 @@ dotenv.config();
 // Initialize Express App
 const app: express.Application = express();
 
+// View engine setup
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "jade");
+
 app.use((req, res, next) => {
   const allowedOrigins = ["http://localhost:3001", "https://contest-lab.vercel.app"];
   const origin = req.headers.origin;
@@ -37,6 +41,7 @@ app.use((req, res, next) => {
 
   next();
 });
+
 
 app.use(logger("dev"));
 app.use(express.json());
@@ -76,18 +81,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // Error handler
 app.use((err: HttpError, req: Request, res: Response) => {
-  // Ensure err is an instance of Error
-  if (err instanceof Error) {
-    res.locals.message = err.message;
-    res.locals.error = req.app.get("env") === "development" ? err : {};
-  } else {
-    res.locals.message = "Unknown error occurred";
-    res.locals.error = {};
-  }
-
-  // Render the error page
-  res.status(err.status || 500);
-  res.render("error");
+  res.status(err.status || 500).json({
+    message: err.message || "Internal Server Error",
+    error: process.env.NODE_ENV === "development" ? err : {},
+  });
 });
 
 
