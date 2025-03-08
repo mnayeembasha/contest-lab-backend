@@ -126,3 +126,4 @@ level order traversal
 [[1],[2,3],[4,5]]
 0
 level order traversal
+[]

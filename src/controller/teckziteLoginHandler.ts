@@ -45,9 +45,9 @@ export const teckziteLoginHandler = async (req, res) => {
 
       res.cookie("token", token, {
         httpOnly: true, // Prevents XSS attacks
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 24 * 60 * 60 * 1000, // 1 day expiration
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: "lax",
+        maxAge: 24 * 60 * 60 * 1000,
       });
       return res.status(200).json({ message: "Login Successfull", teckziteId });
 

@@ -11,7 +11,7 @@ const router = express.Router();
 router.get("/questions", question);
 router.get("/questions/:id", getspecificquestion);
 router.post("/questions/add",addQuestion);
-router.post("/run", isTeckziteUser as RequestHandler,runCode);
+router.post("/run",runCode);
 router.post("/submit", submitCode);
 
 export default router;

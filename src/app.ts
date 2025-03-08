@@ -19,10 +19,7 @@ dotenv.config();
 
 // Initialize Express App
 const app: express.Application = express();
-
-// View engine setup
-// app.set("views", path.join(__dirname, "views"));
-// app.set("view engine", "jade");
+app.use(cookieParser());
 
 const allowedOrigins = ["http://localhost:3001", "https://contest-lab.vercel.app"];
 
@@ -35,7 +32,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // Allow cookies
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -45,14 +42,12 @@ app.use(
 app.options("*", (req, res) => {
   res.sendStatus(204);
 });
+// app.use(cors({origin:'http://localhost:3001',credentials:true}));
 
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, "public")));
 
-// app.use(cors({origin:'http://localhost:3001',credentials:true}));
-app.use(cookieParser());
 
 app.use(
   session({

@@ -2,14 +2,15 @@ import { Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { teckziteUserModel } from "../models/teckziteUserModel";
 import { AuthenticatedRequest } from "../controller/teckziteLoginHandler.js";
+import { JWT_SECRET } from "../config";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 
 interface DecodedToken extends JwtPayload {
   teckziteId: string;
 }
 
 export const isTeckziteUser = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    console.log("cookies=",req.cookies);
   try {
     const token = req.cookies?.token;
 
@@ -19,7 +20,7 @@ export const isTeckziteUser = async (req: AuthenticatedRequest, res: Response, n
 
     let decoded: DecodedToken;
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
+      decoded = jwt.verify(token, JWT_SECRET!) as DecodedToken;
     } catch (error) {
       return res.status(401).json({ message: "Unauthorized: Invalid or expired token" });
     }
