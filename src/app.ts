@@ -49,27 +49,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 
-app.use(
-  session({
-    secret: SESSION_SECRET!,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    }
-  })
-);
+// app.use(
+//   session({
+//     secret: SESSION_SECRET!,
+//     resave: false,
+//     saveUninitialized: false,
+//     cookie: {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "lax",
+//     }
+//   })
+// );
 
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 // Routes
 app.use("/api", questionsRouter);
 app.use("/api", contestRouter);
 app.use("/", indexRouter);
-app.use("/auth", authRouter);
+// app.use("/auth", authRouter);
 app.use("/teckzite", teckziteRouter);
 
 // Catch 404 and forward to error handler
