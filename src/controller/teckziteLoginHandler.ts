@@ -46,9 +46,9 @@ export const teckziteLoginHandler = async (req, res) => {
       const token = jwt.sign({ teckziteId: user?.teckziteId }, JWT_SECRET! , { expiresIn: "1d" });
 
       res.cookie("token", token, {
-        httpOnly: true, // Prevents XSS attacks
+        httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+        sameSite: "strict",
         maxAge: 24 * 60 * 60 * 1000,
       });
       return res.status(200).json({ message: "Login Successfull", teckziteId });
@@ -78,7 +78,7 @@ export const signOut = (req: Request, res: Response) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    sameSite: "strict",
   });
 
   return res.status(200).json({ message: "Signout successful" });

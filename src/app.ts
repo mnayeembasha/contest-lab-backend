@@ -11,7 +11,7 @@ import contestRouter from "./routes/contestroutes";
 import { MONGO_URL, PORT } from "./config";
 // import passport from "passport";
 // import session from "express-session";
-import "./passport-auth/passport";
+// import "./passport-auth/passport";
 import dotenv from "dotenv";
 import teckziteRouter from "./routes/teckziteRoutes";
 dotenv.config();
