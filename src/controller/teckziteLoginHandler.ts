@@ -50,8 +50,8 @@ export const teckziteLoginHandler = async (req, res) => {
       }
       res.cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Only set secure in production
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Avoid strict in dev
+        secure: true,
+        // sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 24 * 60 * 60 * 1000,
       });
       return res.status(200).json({ message: "Login Successfull", teckziteId });
@@ -81,8 +81,8 @@ export const signOut = (req: Request, res: Response) => {
 
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Only set secure in production
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Avoid strict in dev
+    secure: true,
+  // sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
 
   return res.status(200).json({ message: "Signout successful" });
