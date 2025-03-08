@@ -20,14 +20,6 @@ dotenv.config();
 // Initialize Express App
 const app: express.Application = express();
 
-// View engine setup
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "jade");
-
-app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, "public")));
 app.use(
   cors({
     origin: ["http://localhost:3001", "https://contest-lab.vercel.app"], // Allowed origins
@@ -37,7 +29,7 @@ app.use(
   })
 );
 
-// Handle preflight requests manually (optional but recommended)
+// Preflight request handling
 app.use((req, res, next) => {
   const allowedOrigins = ["http://localhost:3001", "https://contest-lab.vercel.app"];
   const origin = req.headers.origin;
@@ -55,6 +47,10 @@ app.use((req, res, next) => {
 
   next();
 });
+app.use(logger("dev"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, "public")));
 
 // app.use(cors({origin:'http://localhost:3001',credentials:true}));
 app.use(cookieParser());
