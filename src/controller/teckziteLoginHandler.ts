@@ -47,7 +47,7 @@ export const teckziteLoginHandler = async (req, res) => {
 
       res.cookie("token", token, {
         httpOnly: true, // Prevents XSS attacks
-        secure: process.env.NODE_ENV === "production" ? true : false,
+        secure: process.env.NODE_ENV === "production" ? false : true,
         sameSite: "lax",
         maxAge: 24 * 60 * 60 * 1000,
       });
@@ -77,7 +77,7 @@ export const getMe = async (req: AuthenticatedRequest, res: Response) => {
 export const signOut = (req: Request, res: Response) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === "production" ? false : true,
     sameSite: "strict",
   });
 
