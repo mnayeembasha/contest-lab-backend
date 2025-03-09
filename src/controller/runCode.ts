@@ -1,27 +1,15 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import fs from "fs";
-import { Question } from "../types";
-import { JDOODLE_CLIENT_ID, JDOODLE_CLIENT_SECRET } from "../config";
+// import { Question } from "../types";
+// import { JDOODLE_CLIENT_ID, JDOODLE_CLIENT_SECRET } from "../config";
 import { Question as QuestionModel } from "../models/questionModel";
+import { ApiKey } from "../models/apiKeyModel";
+import { teckziteUserModel } from "../models/teckziteUserModel";
+import { AuthenticatedRequest } from "./teckziteLoginHandler";
 
 const JDOODLE_URL = "https://api.jdoodle.com/v1/execute";
 
-// Define stored questions
-const questions: Record<string, Question> = {
-  "2c5ee640-c477-4a3e-98c9-5fcaee6aaa43": {
-    title: "Pascal's Triangle",
-    description: "Write a program to return the nth row of Pascal's Triangle.",
-    testCases: [
-      { input: "0", expected: "[1]" },
-      // { input: "1", expected: "[1,1]" },
-      { input: "2", expected: "[1,2,1]" },
-      { input: "5", expected: "[1,5,10,10,5,1]" },
-    ],
-  },
-};
-
-// Define API request payload
 interface JdoodleRequest {
   clientId: string;
   clientSecret: string;
@@ -31,7 +19,6 @@ interface JdoodleRequest {
   versionIndex: string;
 }
 
-// Define API response structure
 interface JdoodleResponse {
   output?: string;
   statusCode?: number;
@@ -40,113 +27,165 @@ interface JdoodleResponse {
   error?: string;
 }
 
-// Run submitted code
-export const runCode = async (req: Request, res: Response): Promise<Response> => {
-  const { code,language, slug } = req.body;
-
-  const suppLangAndVIndex = {
-    "java":{
-      languageCode:"java",
-      versionIndex:5
-    },
-    "c":{
-      languageCode:"c",
-      versionIndex:6
-    },
-    "c++":{
-      languageCode:"cpp",
-      versionIndex:6
-    },
-    "python":{
-      languageCode:"python3",
-      versionIndex:5
-    },
-    "javascript":{
-      languageCode:"nodejs",
-      versionIndex:6
-    },
-  }
-
-  const versionIndex = suppLangAndVIndex[language].versionIndex;
-  const languageCode =suppLangAndVIndex[language].languageCode;
-
-  if (!code || !language || !versionIndex || !slug) {
-    return res.status(400).json({ error: "Missing required fields." });
-  }
-
-  // const question: Question | undefined = questions[questionId];
-  const question = await QuestionModel.findOne({slug});
-  if (!question) {
-    return res.status(404).json({ error: "Question not found." });
-  }
-
-  const inputFilePath = "input.txt";
-  const outputFilePath = "output.txt";
-  const expectedFilePath = "expected_output.txt";
-
-  // Prepare input and expected output files
-  const inputsArray = question.testCases.map((tc) => tc.input.trim());
-  const expectedOutputsArray = question.testCases.map((tc) => tc.expected.trim() || "null");
-
-  fs.writeFileSync(inputFilePath, inputsArray.join("\n"), "utf8");
-  fs.writeFileSync(expectedFilePath, expectedOutputsArray.join("\n"), "utf8");
-
+export const getApiKey = async () => {
   try {
-    // Call JDOODLE API
+    const apiKey = await ApiKey.findOne().sort({ usageCount: 1 }); // Get least used key
 
-    console.log("request=",{
-      clientId: JDOODLE_CLIENT_ID,
-      clientSecret: JDOODLE_CLIENT_SECRET,
-      script: code,
-      stdin: inputsArray.join("\n"),
-      language:languageCode,
-      versionIndex,
-    })
-    const response = await axios.post<JdoodleResponse>(JDOODLE_URL, {
-      clientId: JDOODLE_CLIENT_ID,
-      clientSecret: JDOODLE_CLIENT_SECRET,
-      script: code,
-      stdin: inputsArray.join("\n"),
-      language:languageCode,
-      versionIndex,
-    });
-
-    console.log("response=", response.data);
-
-    const output = response.data.output?.trim() || "";
-    const outputArray = output.split("\n");
-
-    const results: { input: string; output: string; expected: string | null; success: boolean }[] = [];
-
-    for (let i = 0; i < question.testCases.length; i++) {
-      const input = question.testCases[i].input;
-      const expected = question.testCases[i].expected;
-      const caseOutput = outputArray[i]?.trim() || "";
-
-      // Save output to file
-      fs.appendFileSync(outputFilePath, `${caseOutput}\n`, "utf8");
-
-      const normalize = (str: string | null) => (str ? str.replace(/\s+/g, "") : "");
-
-      // Compare output with expected value
-      if (normalize(caseOutput) === normalize(expected)) {
-        results.push({ input, output: caseOutput, expected, success: true });
-      } else {
-        return res.status(200).json({
-          error: "Logical Error",
-          testCase: { input, expected, output: caseOutput },
-        });
-      }
+    if (!apiKey) {
+      throw new Error("No API Keys available.");
     }
 
-    return res.status(200).json({
-      message: "Code executed successfully for all test cases.",
-      results,
-    });
+    if (apiKey.usageCount >= apiKey.limit) {
+      console.log(`API Key ${apiKey.clientId} reached limit. Switching to next.`);
+      return await getApiKey(); // Get the next available key
+    }
+
+    return apiKey;
   } catch (error) {
-    return res.status(500).json({
-      error: "Error during code execution.",
-      details: error.message,
-    });
+    console.error("Error fetching API key:", error);
+    throw new Error("Database error while fetching API key.");
   }
 };
+
+export const incrementApiKeyUsage = async (clientId: string) => {
+  try {
+    const result = await ApiKey.updateOne({ clientId }, { $inc: { usageCount: 1 } });
+
+    if (result.modifiedCount === 0) {
+      throw new Error(`Failed to update usage count for API key: ${clientId}`);
+    }
+  } catch (error) {
+    console.error("Error updating API key usage:", error);
+    throw new Error("Database error while updating API key usage.");
+  }
+};
+
+
+export const runCode = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  try {
+    // Ensure the user is logged in
+    if (!req.user || !req.user?.teckziteId) {
+      return res.status(401).json({ error: "Not logged in." });
+    }
+    const teckziteId = req.user?.teckziteId;
+
+    // Retrieve the user from the database
+    const user = await teckziteUserModel.findOne({ teckziteId });
+    if (!user) {
+      return res.status(401).json({ error: "User not found." });
+    }
+
+    // Safely parse the usageCount
+    let currentUsage = Number(user.usageCount);
+    if (isNaN(currentUsage)) {
+      currentUsage = 0;
+      user.usageCount = 0;
+    }
+
+    // Check if the user has reached the maximum number of requests (limit = 8)
+    if (currentUsage >= 8) {
+      return res.status(201).json({ message: "Maximum request limit reached.", remainingAttempts: 0 });
+    }
+
+    // Increment user's usage count and save the document
+    user.usageCount = currentUsage + 1;
+    await user.save();
+    const remainingAttempts = 8 - user.usageCount;
+
+    // Validate required fields from the request
+    const { code, language, slug } = req.body;
+    const suppLangAndVIndex = {
+      java: { languageCode: "java", versionIndex: 5 },
+      c: { languageCode: "c", versionIndex: 6 },
+      "c++": { languageCode: "cpp", versionIndex: 6 },
+      python: { languageCode: "python3", versionIndex: 5 },
+      javascript: { languageCode: "nodejs", versionIndex: 6 },
+    };
+
+    if (!code || !language || !slug || !suppLangAndVIndex[language]) {
+      return res.status(400).json({ error: "Missing or invalid required fields." });
+    }
+    const { languageCode, versionIndex } = suppLangAndVIndex[language];
+
+    // Retrieve the contest question
+    const question = await QuestionModel.findOne({ slug });
+    if (!question) {
+      return res.status(404).json({ error: "Question not found." });
+    }
+
+    // Prepare input and expected output files
+    const inputsArray = question.testCases.map((tc) => tc.input.trim());
+    const expectedOutputsArray = question.testCases.map((tc) => tc.expected.trim() || "null");
+
+    fs.writeFileSync("input.txt", inputsArray.join("\n"), "utf8");
+    fs.writeFileSync("expected_output.txt", expectedOutputsArray.join("\n"), "utf8");
+
+    // Get the API key from the database (based on usage)
+    const apiKey = await getApiKey();
+    if (!apiKey) {
+      return res.status(500).json({ error: "No API keys available." });
+    }
+
+    try {
+      // Call the JDOODLE API using the selected API key
+      const response = await axios.post<JdoodleResponse>(JDOODLE_URL, {
+        clientId: apiKey.clientId,
+        clientSecret: apiKey.clientSecret,
+        script: code,
+        stdin: inputsArray.join("\n"),
+        language: languageCode,
+        versionIndex,
+      });
+
+      // Increment API key usage count
+      await incrementApiKeyUsage(apiKey.clientId);
+
+      // Process the API response
+      const output = response.data.output?.trim() || "";
+      const outputArray = output.split("\n");
+      const results: { input: string; output: string; expected: string | null; success: boolean }[] = [];
+
+      for (let i = 0; i < question.testCases.length; i++) {
+        const input = question.testCases[i].input;
+        const expected = question.testCases[i].expected;
+        const caseOutput = outputArray[i]?.trim() || "";
+
+        // Save each output to file
+        fs.appendFileSync("output.txt", `${caseOutput}\n`, "utf8");
+
+        // Normalize strings for comparison (remove whitespace)
+        const normalize = (str: string | null) => (str ? str.replace(/\s+/g, "") : "");
+
+        if (normalize(caseOutput) === normalize(expected)) {
+          results.push({ input, output: caseOutput, expected, success: true });
+        } else {
+          return res.status(200).json({
+            error: "Logical Error",
+            testCase: { input, expected, output: caseOutput },
+            remainingAttempts,
+          });
+        }
+      }
+
+      // Return successful response with remaining attempts
+      return res.status(200).json({
+        message: "Code executed successfully for all test cases.",
+        results,
+        remainingAttempts,
+      });
+    } catch (error) {
+      console.error("Error during API request:", error);
+      return res.status(500).json({
+        error: "Error during code execution.",
+        details: error.message,
+        remainingAttempts,
+      });
+    }
+  } catch (error) {
+    console.error("Unexpected error in runCode:", error);
+    return res.status(500).json({ error: "Internal Server Error", details: error.message });
+  }
+};
+
+
+

@@ -9,6 +9,7 @@ import contestRouter from "./routes/contestroutes";
 import { MONGO_URL, PORT } from "./config";
 import dotenv from "dotenv";
 import teckziteRouter from "./routes/teckziteRoutes";
+import { initializeApiKeys } from "./models/apiKeyModel";
 dotenv.config();
 
 // Initialize Express App
@@ -63,6 +64,8 @@ mongoose
   .connect(MONGO_URL || "mongodb://localhost:27017/coding-competition")
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
+
+// initializeApiKeys();
 
 app.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);

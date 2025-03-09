@@ -11,5 +11,4 @@ export const JDOODLE_CLIENT_SECRET = process.env.JDOODLE_CLIENT_SECRET;
 export const SESSION_SECRET = process.env.SESSION_SECRET;
 export const JWT_SECRET = process.env.JWT_SECRET;
 export const TECKZITE_USER_PASSWORD = process.env.TECKZITE_USER_PASSWORD;
-// export const FRONTEND_URL='http://localhost:3001'
-export const FRONTEND_URL='https://contest-lab.vercel.app'
+export const JDOODLE_KEYS = process.env.JDOODLE_KEYS;

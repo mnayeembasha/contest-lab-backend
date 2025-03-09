@@ -129,3 +129,30 @@ level order traversal
 []
 []
 []
+[]
+two sum
+Solution.java:5: error: not a statement
+Solution.java:16: error: reached end of file while parsing
+Solution.java:29: error: reached end of file while parsing
+true
+true
+false
+true
+true
+false
+jdoodle.cpp: In function ‘bool isValid(std::string)’:
+true
+true
+false
+[]
+[]
+false
+is valid
+nayeem basha
+nayeem
+main.c: In function ‘maxSubArray’:
+main.c: In function ‘maxSubArray’:
+[]
+[]
+[]
+[]
