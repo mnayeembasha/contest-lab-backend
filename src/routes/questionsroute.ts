@@ -7,9 +7,9 @@ import { isTeckziteUser } from "../middleware/teckziteUserMiddleware";
 import { RequestHandler } from "express";
 const router = express.Router();
 
-router.get("/questions", question);
-router.get("/questions/:id", getspecificquestion);
-router.post("/questions/add",addQuestion);
+// router.get("/questions", question);
+// router.get("/questions/:id", getspecificquestion);
+// router.post("/questions/add",addQuestion);
 router.post("/run",isTeckziteUser as RequestHandler,runCode as RequestHandler);
 router.post("/submit", submitCode);
 
