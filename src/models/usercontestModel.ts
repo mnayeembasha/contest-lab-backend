@@ -181,126 +181,126 @@ const userContestSchema = new Schema({
   },
 });
 
-let noOfTestCases = 0;
-userContestSchema.post('save', async function (doc, next) {
-  if (doc.isCompleted && !doc.scoresCalculated) {
-    let needsUpdate = false;
-    let totalScore =0;
+// let noOfTestCases = 0;
+// userContestSchema.post('save', async function (doc, next) {
+//   if (doc.isCompleted && !doc.scoresCalculated) {
+//     let needsUpdate = false;
+//     let totalScore =0;
 
-    for (const submission of doc.submissions) {
-      if (submission.testCasesPassed === 0) {
-        try {
-          const question = await QuestionModel.findById(submission.questionId);
-          if (!question) {
-            console.error(`Question not found: ${submission.questionId}`);
-            continue;
-          }
+//     for (const submission of doc.submissions) {
+//       if (submission.testCasesPassed === 0) {
+//         try {
+//           const question = await QuestionModel.findById(submission.questionId);
+//           if (!question) {
+//             console.error(`Question not found: ${submission.questionId}`);
+//             continue;
+//           }
 
-          const passed = await evaluateCode(
-            submission.code,
-            submission.language,
-            question
-          );
-          submission.testCasesPassed = passed;
-          totalScore+=passed;
-          needsUpdate = true;
-        } catch (error) {
-          console.error('Error evaluating code:', error);
-          submission.testCasesPassed = 0;
-          needsUpdate = true;
-        }
-      }
-    }
+//           const passed = await evaluateCode(
+//             submission.code,
+//             submission.language,
+//             question
+//           );
+//           submission.testCasesPassed = passed;
+//           totalScore+=passed;
+//           needsUpdate = true;
+//         } catch (error) {
+//           console.error('Error evaluating code:', error);
+//           submission.testCasesPassed = 0;
+//           needsUpdate = true;
+//         }
+//       }
+//     }
 
-    if (needsUpdate) {
-      doc.scoresCalculated = true;
-      doc.noOfTestCasesPassed=totalScore;
-      console.log("no of test cases passed = ", totalScore);
-      doc.totalScore=(totalScore/noOfTestCases)*100;
-      console.log("total score=",totalScore);
+//     if (needsUpdate) {
+//       doc.scoresCalculated = true;
+//       doc.noOfTestCasesPassed=totalScore;
+//       console.log("no of test cases passed = ", totalScore);
+//       doc.totalScore=(totalScore/noOfTestCases)*100;
+//       console.log("total score=",totalScore);
 
-      await doc.save();
-    }
-  }
+//       await doc.save();
+//     }
+//   }
 
-  next();
-});
+//   next();
+// });
 
 
-const suppLangAndVIndex = {
-  java: {
-    languageCode: "java",
-    versionIndex: 5,
-  },
-  c: {
-    languageCode: "c",
-    versionIndex: 6,
-  },
-  "c++": {
-    languageCode: "cpp",
-    versionIndex: 6,
-  },
-  python: {
-    languageCode: "python3",
-    versionIndex: 5,
-  },
-  javascript: {
-    languageCode: "nodejs",
-    versionIndex: 6,
-  },
-};
+// const suppLangAndVIndex = {
+//   java: {
+//     languageCode: "java",
+//     versionIndex: 5,
+//   },
+//   c: {
+//     languageCode: "c",
+//     versionIndex: 6,
+//   },
+//   "c++": {
+//     languageCode: "cpp",
+//     versionIndex: 6,
+//   },
+//   python: {
+//     languageCode: "python3",
+//     versionIndex: 5,
+//   },
+//   javascript: {
+//     languageCode: "nodejs",
+//     versionIndex: 6,
+//   },
+// };
 
-async function evaluateCode(
-  code: string,
-  language: string,
-  question: any
-): Promise<number> {
-  const langConfig = suppLangAndVIndex[language];
-  if (!langConfig) {
-    throw new Error("Unsupported language");
-  }
+// async function evaluateCode(
+//   code: string,
+//   language: string,
+//   question: any
+// ): Promise<number> {
+//   const langConfig = suppLangAndVIndex[language];
+//   if (!langConfig) {
+//     throw new Error("Unsupported language");
+//   }
 
-  const { languageCode, versionIndex } = langConfig;
-  const allTestCases = [
-    ...question.testCases,
-    ...question.hiddenTestCases,
-  ];
-  noOfTestCases +=allTestCases.length;
+//   const { languageCode, versionIndex } = langConfig;
+//   const allTestCases = [
+//     ...question.testCases,
+//     ...question.hiddenTestCases,
+//   ];
+//   noOfTestCases +=allTestCases.length;
 
-  const inputs = allTestCases.map((tc) => tc.input.trim());
-  const expectedOutputs = allTestCases.map((tc) => tc.expected.trim());
+//   const inputs = allTestCases.map((tc) => tc.input.trim());
+//   const expectedOutputs = allTestCases.map((tc) => tc.expected.trim());
 
-  const payload = {
-    clientId: JDOODLE_CLIENT_ID,
-    clientSecret: JDOODLE_CLIENT_SECRET,
-    script: code,
-    stdin: inputs.join("\n"),
-    language: languageCode,
-    versionIndex: versionIndex.toString(),
-  };
+//   const payload = {
+//     clientId: JDOODLE_CLIENT_ID,
+//     clientSecret: JDOODLE_CLIENT_SECRET,
+//     script: code,
+//     stdin: inputs.join("\n"),
+//     language: languageCode,
+//     versionIndex: versionIndex.toString(),
+//   };
 
-  try {
-    console.log("code is being evaluated...");
-    const response = await axios.post(JDOODLE_URL, payload);
-    const output = response.data.output?.trim() || "";
-    const outputLines = output.split("\n").map((line) => line.trim());
+//   try {
+//     console.log("code is being evaluated...");
+//     const response = await axios.post(JDOODLE_URL, payload);
+//     const output = response.data.output?.trim() || "";
+//     const outputLines = output.split("\n").map((line) => line.trim());
 
-    let passed = 0;
-    for (let i = 0; i < allTestCases.length; i++) {
-      const expected = expectedOutputs[i];
-      const actual = outputLines[i] || "";
-      if (actual === expected) {
-        passed++;
-      }
-    }
-    console.log("question=",question.slug);
-    console.log("no of test cases passed=",passed);
+//     let passed = 0;
+//     for (let i = 0; i < allTestCases.length; i++) {
+//       const expected = expectedOutputs[i];
+//       const actual = outputLines[i] || "";
+//       if (actual === expected) {
+//         passed++;
+//       }
+//     }
+//     console.log("question=",question.slug);
+//     console.log("no of test cases passed=",passed);
 
-    return passed;
-  } catch (error) {
-    console.error("Jdoodle API error:", error.response?.data || error.message);
-    return 0;
-  }
-}
+//     return passed;
+//   } catch (error) {
+//     console.error("Jdoodle API error:", error.response?.data || error.message);
+//     return 0;
+//   }
+// }
 
 export const UserContest = mongoose.model("UserContest", userContestSchema);
