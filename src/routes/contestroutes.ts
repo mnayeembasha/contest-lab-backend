@@ -1,4 +1,5 @@
 import express from "express";
+import { isTeckziteUser } from "../middleware/teckziteUserMiddleware";
 // import { isAuthenticated } from "../middleware/authMiddleware";
 const  router = express.Router();
 var {createContest} = require('../controller/createContest');

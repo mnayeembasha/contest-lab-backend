@@ -17,14 +17,15 @@ interface Answers {
   };
 }
 
-exports.submitContest = async (req: Request, res: Response) => {
+export const submitContest = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const { userId:teckziteId, contestId, answers,timeTaken } = req.body;
+    const { userId: teckziteId, contestId, answers, timeTaken } = req.body;
+
+    console.log("Submitting contest for:", teckziteId, contestId, answers);
 
     if (!teckziteId || !contestId || !answers) {
       return res.status(400).json({ error: "Missing required fields" });
     }
-
 
     // Fetch contest details
     const contest = await Contest.findById(contestId);
@@ -32,9 +33,10 @@ exports.submitContest = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Contest not found" });
     }
 
-    // Check if contest time has ended
+    // Check if contest time has ended (if needed)
     const currentTime = new Date();
-    const contestEndTime = new Date(contest.startTime.getTime() + contest.duration * 60000); // duration in minutes
+    const contestEndTime = new Date(contest.startTime.getTime() + contest.duration * 60000);
+    // Uncomment below if you want to enforce contest end time
     // if (currentTime > contestEndTime) {
     //   return res.status(403).json({ error: "Contest has already ended" });
     // }
@@ -45,8 +47,8 @@ exports.submitContest = async (req: Request, res: Response) => {
     const submissions = await Promise.all(
       Object.entries(typedAnswers).map(async ([questionTitle, languages]) => {
         const question = await Question.findOne({ slug: questionTitle });
-        if (!question) {
-          throw new Error(`Question not found: ${questionTitle}`);
+        if (!question || !question._id) {
+          throw new Error(`Question not found or has no _id for slug: ${questionTitle}`);
         }
 
         return Object.entries(languages).map(([language, code]) => ({
@@ -60,11 +62,12 @@ exports.submitContest = async (req: Request, res: Response) => {
     );
     const flattenedSubmissions = submissions.flat();
 
+    console.log("Flattened submissions:", flattenedSubmissions);
+
     // Check if user already has a submission for this contest
-    let userContest = await UserContest.findOne({ teckziteId,contestId });
+    let userContest = await UserContest.findOne({ teckziteId, contestId });
     if (userContest) {
-      res.status(401).json({"message":"user already submitted the contest"});
-      return;
+      return res.status(401).json({ message: "User already submitted the contest" });
     } else {
       // Create new record
       userContest = new UserContest({
@@ -76,7 +79,7 @@ exports.submitContest = async (req: Request, res: Response) => {
       });
     }
 
-    // Save to DB
+    // Save the new submission record to the database
     await userContest.save();
 
     return res.status(201).json({ message: "Contest submitted successfully" });
@@ -85,65 +88,3 @@ exports.submitContest = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
-
-// exports.submitContest = async (req: Request<{}, {}, SubmitContestRequestBody>, res: Response): Promise<Response> => {
-//   const { userId, contestId, questionId, code } = req.body;
-
-//   try {
-//     // Find the user contest
-//     const userContest = await UserContest.findOne({ userId, contestId });
-//     if (!userContest) {
-//       return res.status(404).json({ message: 'Contest not found for user.' });
-//     }
-
-//     // Find the question
-//     const question = await Question.findById(questionId);
-//     if (!question) {
-//       return res.status(404).json({ message: 'Question not found.' });
-//     }
-
-//     // Ensure that the questionId is not null or undefined before proceeding
-//     const questionIndex = userContest.submissions.findIndex(sub => sub.questionId && sub.questionId.toString() === questionId.toString());
-//     if (questionIndex === -1) {
-//       return res.status(404).json({ message: 'Question not part of this contest.' });
-//     }
-
-//     // Get the submission details
-//     const submission = userContest.submissions[questionIndex];
-
-//     // Ensure that the contest exists and has necessary fields
-//     const contest = await Contest.findById(contestId);
-//     if (!contest || !contest.startTime || contest.duration === undefined || contest.duration === null) {
-//       return res.status(404).json({ message: 'Contest not found or incomplete data.' });
-//     }
-
-//     // Check if the contest time is over
-//     const timeLeft = (new Date()).getTime() - contest.startTime.getTime();
-//     if (timeLeft > contest.duration * 60 * 1000) {
-//       return res.status(400).json({ message: 'Time for the contest has ended.' });
-//     }
-
-//     // Save the submission code and time taken
-//     submission.code = code;
-//     submission.submissionTime = new Date();
-//     submission.isSubmitted = true;
-
-//     // Calculate the time taken for the submission
-//     const startTime = new Date(submission.submissionTime);
-//     const endTime = new Date();
-//     submission.timeTaken = (endTime.getTime() - startTime.getTime()) / 1000; // Time in seconds
-
-//     // Save the user contest document
-//     await userContest.save();
-
-//     // Respond with success
-//     return res.status(200).json({ message: 'Code submitted successfully.' });
-//   } catch (error: unknown) {
-//     // Safely handle errors, ensuring that we get the message from an Error instance
-//     if (error instanceof Error) {
-//       return res.status(400).json({ error: error.message });
-//     }
-//     return res.status(400).json({ error: "An unexpected error occurred." });
-//   }
-// };
