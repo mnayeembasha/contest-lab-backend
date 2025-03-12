@@ -83,14 +83,14 @@ export const runCode = async (req: AuthenticatedRequest, res: Response): Promise
     }
 
     // Check if the user has reached the maximum number of requests (limit = 8)
-    if (currentUsage >= 8) {
+    if (currentUsage >= 25) {
       return res.status(201).json({ message: "Maximum request limit reached.", remainingAttempts: 0 });
     }
 
     // Increment user's usage count and save the document
     user.usageCount = currentUsage + 1;
     await user.save();
-    const remainingAttempts = 8 - user.usageCount;
+    const remainingAttempts = 25 - user.usageCount;
 
     // Validate required fields from the request
     const { code, language, slug } = req.body;
