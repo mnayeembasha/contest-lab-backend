@@ -145,34 +145,43 @@ export const runCode = async (req: AuthenticatedRequest, res: Response): Promise
       const outputArray = output.split("\n");
       const results: { input: string; output: string; expected: string | null; success: boolean }[] = [];
 
-      for (let i = 0; i < question.testCases.length; i++) {
-        const input = question.testCases[i].input;
-        const expected = question.testCases[i].expected;
-        const caseOutput = outputArray[i]?.trim() || "";
+   // Update the loop to collect all results and check for any failures
+for (let i = 0; i < question.testCases.length; i++) {
+  const input = question.testCases[i].input;
+  const expected = question.testCases[i].expected;
+  const caseOutput = outputArray[i]?.trim() || "";
 
-        // Save each output to file
-        fs.appendFileSync("output.txt", `${caseOutput}\n`, "utf8");
+  fs.appendFileSync("output.txt", `${caseOutput}\n`, "utf8");
 
-        // Normalize strings for comparison (remove whitespace)
-        const normalize = (str: string | null) => (str ? str.replace(/\s+/g, "") : "");
+  // Normalize output and expected for comparison
+  const normalize = (str: string | null) => (str ? str.replace(/\s+/g, "") : "");
+  const caseOutputNormalized = normalize(caseOutput);
+  const expectedNormalized = normalize(expected);
 
-        if (normalize(caseOutput) === normalize(expected)) {
-          results.push({ input, output: caseOutput, expected, success: true });
-        } else {
-          return res.status(200).json({
-            error: "Logical Error",
-            testCase: { input, expected, output: caseOutput },
-            remainingAttempts,
-          });
-        }
-      }
+  results.push({
+    input,
+    output: caseOutputNormalized,
+    expected: expectedNormalized,
+    success: caseOutputNormalized === expectedNormalized,
+  });
+}
 
-      // Return successful response with remaining attempts
-      return res.status(200).json({
-        message: "Code executed successfully for all test cases.",
-        results,
-        remainingAttempts,
-      });
+// Check if all test cases passed
+const allPassed = results.every(result => result.success);
+
+if (allPassed) {
+  return res.status(200).json({
+    message: "Code executed successfully for all test cases.",
+    results,
+    remainingAttempts,
+  });
+} else {
+  return res.status(200).json({
+    error: "Logical Error: Some test cases failed.",
+    results,
+    remainingAttempts,
+  });
+}
     } catch (error) {
       console.error("Error during API request:", error);
       return res.status(500).json({
